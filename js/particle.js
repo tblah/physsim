@@ -6,7 +6,8 @@ Particle = function(uid, x, y, z) { // class for particles
 	this.id = uid;
 	this.velocity = new THREE.Vector3((Math.random()*this.Vmax) - this.Vmax/2, (Math.random()*this.Vmax) - this.Vmax/2, (Math.random()*this.Vmax) - this.Vmax/2);
 		
-	this.geometry = new THREE.CubeGeometry(this.radius * 2, this.radius * 2, this.radius * 2); // cubes for performance
+	//this.geometry = new THREE.CubeGeometry(this.radius * 2, this.radius * 2, this.radius * 2); // cubes for performance
+	this.geometry = new THREE.SphereGeometry(this.radius);
 	this.material = new THREE.MeshBasicMaterial( {color: this.colour} );
 	this.mesh = new THREE.Mesh(this.geometry, this.material);
 
