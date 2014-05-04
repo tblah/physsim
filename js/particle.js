@@ -1,7 +1,7 @@
-Particle = function(uid, x, y, z, mass) { // constructor for particles
-	this.radius = 0.02 ;
-	this.colour = 0xff0000; // red
-	this.Vmax = 0.1;
+Particle = function(uid, x, y, z, mass, radius, colour, Vmax) { // constructor for particles
+	this.radius = radius;
+	this.colour = colour;
+	this.Vmax = Vmax;
 	this.mass = mass;
 	this.id = uid;
 	this.velocity = new THREE.Vector3((Math.random()*this.Vmax) - this.Vmax/2, (Math.random()*this.Vmax) - this.Vmax/2, (Math.random()*this.Vmax) - this.Vmax/2);
