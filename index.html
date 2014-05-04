@@ -34,6 +34,27 @@
 				}
 			}
 
+			function onWindowResize() {	// event handler to deal with fixing things when the window resizes
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function onDocumentMouseMove( event ) { // ebent hangler to allow the camera to be moved using the mouse
+
+				mouseX = event.clientX - window.innerWidth / 2;
+				mouseY = event.clientY - window.innerHeight / 2;
+
+			}
+
+			////////////////////////////////////////////////////////////////////////
+			////////////////////////////////////////////////////////////////////////
+
+			var mouseY = 0;	// used for the movment wth the mouse
+			var mouseX = 0;
+
 			// create bare essentials: scene, camera and renderer
 			var scene = new THREE.Scene();
 			var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
@@ -58,32 +79,11 @@
 
 			camera.position.z = 5;
 
-			// do jQuery stuff so that the camera can be moved about
-			$(document).ready(function(){
-				$(document).keypress(function(e) {
-					switch(e.keyCode) { // this logic is horribble and needs improving
-						case 38: // up arrow
-							camera.position.z -= 0.1;
-							camera.lookAt(container.getMesh().position);
-						break;
+			// allow the camera to be moved with the mouse
+			document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 
-						case 40: // down arrow
-							camera.position.z += 0.1
-							camera.lookAt(container.getMesh().position);
-						break;
-
-						case 39: // right arrow
-							camera.position.x += 0.1;
-							camera.lookAt(container.getMesh().position);
-						break;
-
-						case 37: //left arrow
-							camera.position.x -= 0.1;
-							camera.lookAt(container.getMesh().position);
-						break;
-					}
-				});
-			});
+			// fix everything when we are resized
+			window.addEventListener( 'resize', onWindowResize, false );
 
 			// do rendering
 			var render = function () { 
@@ -93,6 +93,12 @@
 				for (var i = 0; i < numParticles; i++) {
 					particles[i].tick();
 				}
+
+				// for camera movement
+				camera.position.x += ( mouseX - camera.position.x ) * 0.0001;
+				camera.position.y += ( - mouseY - camera.position.y ) * 0.0001;
+
+				camera.lookAt(container.getMesh().position);
 			}; 
 
 			render();
