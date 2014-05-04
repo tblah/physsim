@@ -1,135 +1,106 @@
-function Particle(uid, x, y, z) { // class for particles
-	var radius = 0.02 ;
-	var colour = 0xff0000; // red
-	var Vmax = 0.1;
-	var mass = 1;
-	var id = uid;
+Particle = function(uid, x, y, z) { // class for particles
+	this.radius = 0.02 ;
+	this.colour = 0xff0000; // red
+	this.Vmax = 0.1;
+	this.mass = 1;
+	this.id = uid;
+	this.velocity = new THREE.Vector3((Math.random()*this.Vmax) - this.Vmax/2, (Math.random()*this.Vmax) - this.Vmax/2, (Math.random()*this.Vmax) - this.Vmax/2);
 		
-	//var geometry = new THREE.CubeGeometry(radius, radius, radius);
-	var geometry = new THREE.SphereGeometry(radius);
-	var material = new THREE.MeshBasicMaterial( {color: colour} );
-	var mesh = new THREE.Mesh(geometry, material);
+	this.geometry = new THREE.CubeGeometry(this.radius * 2, this.radius * 2, this.radius * 2); // cubes for performance
+	this.material = new THREE.MeshBasicMaterial( {color: this.colour} );
+	this.mesh = new THREE.Mesh(this.geometry, this.material);
 
-	mesh.position.x = x;
-	mesh.position.y = y;
-	mesh.position.z = z;
+	this.mesh.position.x = x;
+	this.mesh.position.y = y;
+	this.mesh.position.z = z;
+};
 
-	var genVelocity = function () {
-		return (Math.random()*Vmax) - Vmax/2;
-	}
-
-	var velocity = new THREE.Vector3(genVelocity(), genVelocity(), genVelocity());
-
-	this.tick = function() {	// does physics
-		mesh.position.x += velocity.x;
-		mesh.position.y += velocity.y;
-		mesh.position.z += velocity.z;
+Particle.prototype.tick = function() {	// does physics
+	this.mesh.position.x += this.velocity.x;
+	this.mesh.position.y += this.velocity.y;
+	this.mesh.position.z += this.velocity.z;
 		
-		checkWallCollisions();
-		checkParticleCollisions();
+	this.checkWallCollisions();
+	this.checkParticleCollisions();
+};
+
+Particle.prototype.checkWallCollisions = function () {	// should make the edges of the container not hardcoded at some point
+	// collisions with walls of the container
+	if (this.mesh.position.x >= 2) { 	// collision with right wall
+		this.velocity.x = -this.velocity.x;
+		this.mesh.position.x -= this.radius;	// hacky teleport to stop a discrete error where particles end up outside the container
+	} else if (this.mesh.position.x <= -2) { 	// collision with left wall
+		this.velocity.x = -this.velocity.x;
+		this.mesh.position.x += this.radius;
 	}
 
-	var checkWallCollisions = function () {	// should make the edges of the container not hardcoded at some point
-		// collisions with walls of the container
-		if (mesh.position.x >= 2) { 	// collision with right wall
-			velocity.x = -velocity.x;
-			mesh.position.x -= radius;	// hacky teleport to stop a discrete error where particles end up outside the container
-		} else if (mesh.position.x <= -2) { 	// collision with left wall
-			velocity.x = -velocity.x;
-			mesh.position.x += radius;
-		}
-
-		if (mesh.position.y >= 2) {	// collision with top wall
-			velocity.y = -velocity.y;
-			mesh.position.y -= radius;
-		} else if (mesh.position.y <= -2) {	// collision with bottom wall
-			velocity.y = -velocity.y;
-			mesh.position.y += radius;
-		}
-
-		if (mesh.position.z >= 2) {	// collision with near wall
-			velocity.z = -velocity.z;
-			mesh.position.z -= radius;
-		} else if (mesh.position.z <= -2) {	// collision with far wall
-			velocity.z = -velocity.z;
-			mesh.position.z += radius;
-		}
+	if (this.mesh.position.y >= 2) {	// collision with top wall
+		this.velocity.y = -this.velocity.y;
+		this.mesh.position.y -= this.radius;
+	} else if (this.mesh.position.y <= -2) {	// collision with bottom wall
+		this.velocity.y = -this.velocity.y;
+		this.mesh.position.y += this.radius;
 	}
 
-	var collisionPythagoras = function(particle) {	// slow but easy to read
-		var deltaX = mesh.position.x - particle.getMesh().position.x;
-		var deltaY = mesh.position.y - particle.getMesh().position.y;
-		var deltaZ = mesh.position.z - particle.getMesh().position.z;
-
-		var distanceSquared = Math.pow(deltaX, 2)+Math.pow(deltaY,2)+Math.pow(deltaZ,2);
-		var collisionDistanceSquared = Math.pow(radius + particle.getRadius(), 2);
-
-		if (distanceSquared > collisionDistanceSquared)
-			return false;
-		else
-			return true;
+	if (this.mesh.position.z >= 2) {	// collision with near wall
+		this.velocity.z = -this.velocity.z;
+		this.mesh.position.z -= this.radius;
+	} else if (this.mesh.position.z <= -2) {	// collision with far wall
+		this.velocity.z = -this.velocity.z;
+		this.mesh.position.z += this.radius;
 	}
+};
 
-	var calcV1 = function(u1, u2, m1, m2) { // assumes an elastic collision
-		return ((u1*(m1-m2) + 2*m2*u2)/(m1+m2));
-	}
+Particle.prototype.collisionPythagoras = function(particle) {	// slow but easy to read
+	var deltaX = this.mesh.position.x - this.mesh.position.x;
+	var deltaY = this.mesh.position.y - this.mesh.position.y;
+	var deltaZ = this.mesh.position.z - this.mesh.position.z;
 
-	var checkParticleCollisions = function () {
-		for (var i = 0; i < numParticles; i++) {
-			if (particles[i].getID() < id) { // avoid duplicate checks
-				if (collisionPythagoras(particles[i])) {
-					// we have a collision
+	var distanceSquared = Math.pow(deltaX, 2)+Math.pow(deltaY,2)+Math.pow(deltaZ,2);
+	var collisionDistanceSquared = Math.pow(this.radius + this.radius, 2);
 
-					var u1 = new THREE.Vector3(velocity.x, velocity.y, velocity.z);	// so that we can use the old values in calculations for v2
-					var v2 = new THREE.Vector3(particles[i].getVelocity().x, particles[i].getVelocity().y, particles[i].getVelocity().z);
+	if (distanceSquared > collisionDistanceSquared)
+		return false;
+	else
+		return true;
+};
 
-					//var m2 = particles[i].getMass();
+Particle.prototype.calcV1 = function(u1, u2, m1, m2) { // assumes an elastic collision
+	return ((u1*(m1-m2) + 2*m2*u2)/(m1+m2));
+};
 
-					/*velocity.x = calcV1(velocity.x, v2.x, mass, m2);
-					v2.x = calcV1(v2.x, u1.x, mass, m2);
+Particle.prototype.checkParticleCollisions = function () {
+	for (var i = 0; i < numParticles; i++) {
+		if (particles[i].ID < this.id) { // avoid duplicate checks
+			if (collisionPythagoras(particles[i])) {
+				// we have a collision
 
-					velocity.y = calcV1(velocity.y, v2.y, mass, m2);
-					v2.y = calcV1(v2.y, u1.y, mass, m2);
+				var u1 = new THREE.Vector3(velocity.x, velocity.y, velocity.z);	// so that we can use the old values in calculations for v2
+				var v2 = new THREE.Vector3(particles[i].getVelocity().x, particles[i].getVelocity().y, particles[i].getVelocity().z);
 
-					velocity.z - calcV1(velocity.z, v2.z, mass, m2);
-					v2.z = calcV1(v2.z, u1.z, mass, m2);*/
+				//var m2 = particles[i].getMass();
 
-					velocity.x = v2.x;
-					velocity.y = v2.y;
-					velocity.z = v2.z;
+				/*velocity.x = calcV1(velocity.x, v2.x, mass, m2);
+				v2.x = calcV1(v2.x, u1.x, mass, m2);
 
-					v2.x = u1.x;
-					v2.y = u1.y;
-					v2.z = u1.z;
+				velocity.y = calcV1(velocity.y, v2.y, mass, m2);
+				v2.y = calcV1(v2.y, u1.y, mass, m2);
+
+				velocity.z - calcV1(velocity.z, v2.z, mass, m2);
+				v2.z = calcV1(v2.z, u1.z, mass, m2);*/
+
+				this.velocity.x = v2.x;
+				this.velocity.y = v2.y;
+				this.velocity.z = v2.z;
+
+				v2.x = u1.x;
+				v2.y = u1.y;
+				v2.z = u1.z;
 
 
-					particles[i].setVelocity(v2);
-				}
+				particles[i].velocity = v2;
 			}
 		}
+			
 	}
-
-	this.getMesh = function() {
-		return mesh;
-	}
-
-	this.getID = function () {
-		return id;
-	}
-
-	this.getRadius = function() {
-		return radius;
-	}
-
-	this.getMass = function() {
-		return mass;
-	}
-
-	this.setVelocity = function(v) {
-		velocity = v;
-	} 
-
-	this.getVelocity = function() {
-		return velocity;
-	}
-}
+};
