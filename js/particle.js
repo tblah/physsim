@@ -1,8 +1,8 @@
-Particle = function(uid, x, y, z) { // class for particles
+Particle = function(uid, x, y, z, mass) { // constructor for particles
 	this.radius = 0.02 ;
 	this.colour = 0xff0000; // red
 	this.Vmax = 0.1;
-	this.mass = 1;
+	this.mass = mass;
 	this.id = uid;
 	this.velocity = new THREE.Vector3((Math.random()*this.Vmax) - this.Vmax/2, (Math.random()*this.Vmax) - this.Vmax/2, (Math.random()*this.Vmax) - this.Vmax/2);
 		
@@ -77,27 +77,18 @@ Particle.prototype.checkParticleCollisions = function () {
 				// we have a collision
 
 				var u1 = new THREE.Vector3(velocity.x, velocity.y, velocity.z);	// so that we can use the old values in calculations for v2
-				var v2 = new THREE.Vector3(particles[i].getVelocity().x, particles[i].getVelocity().y, particles[i].getVelocity().z);
+				var v2 = new THREE.Vector3(particles[i].velocity.x, particles[i].velocity.y, particles[i].velocity.z);
 
-				//var m2 = particles[i].getMass();
+				var m2 = particles[i].mass;
 
-				/*velocity.x = calcV1(velocity.x, v2.x, mass, m2);
+				velocity.x = calcV1(velocity.x, v2.x, mass, m2);
 				v2.x = calcV1(v2.x, u1.x, mass, m2);
 
 				velocity.y = calcV1(velocity.y, v2.y, mass, m2);
 				v2.y = calcV1(v2.y, u1.y, mass, m2);
 
 				velocity.z - calcV1(velocity.z, v2.z, mass, m2);
-				v2.z = calcV1(v2.z, u1.z, mass, m2);*/
-
-				this.velocity.x = v2.x;
-				this.velocity.y = v2.y;
-				this.velocity.z = v2.z;
-
-				v2.x = u1.x;
-				v2.y = u1.y;
-				v2.z = u1.z;
-
+				v2.z = calcV1(v2.z, u1.z, mass, m2);
 
 				particles[i].velocity = v2;
 			}
