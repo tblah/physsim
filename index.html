@@ -1,0 +1,103 @@
+<html>
+	<head>
+		<title>gas1</title>
+		<script type="text/javascript" src="js/three.min.js"></script>
+		<script type="text/javascript" src="js/particle.js"></script>
+		<script type="text/javascript" src="js/jquery-2.1.0.min.js"></script>
+
+		<style type="text/css">canvas { width: 100%; height: 100%; }</style>
+	</head>
+	<body>
+		<script type="text/javascript">
+			function Container() {
+				var edgeLength = 4;
+				var colour = 0xffffff; // white
+				var edgeColour = 0xffffff; // white
+
+				var geometry = new THREE.CubeGeometry(edgeLength, edgeLength, edgeLength);
+				var boxMaterial = new THREE.MeshBasicMaterial( {color: colour, transparent: true, opacity: 0.25, wireframe: false} );
+				var mesh = new THREE.Mesh(geometry, boxMaterial);
+
+				var edgeMaterial = new THREE.MeshBasicMaterial( {color: edgeColour, wireframe: true, transparent: false} );
+				var edges = new THREE.Mesh(geometry, edgeMaterial);
+
+				this.getBoxMesh = function() {
+					return mesh;
+				}
+
+				this.getEdgeMesh = function() { // this is an ugly hack to get wireframe and filled in sides
+					return edges;
+				}
+
+				this.getMesh = function() {
+					return mesh;
+				}
+			}
+
+			// create bare essentials: scene, camera and renderer
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			document.body.appendChild(renderer.domElement);
+
+			// create container
+			var container = new Container();
+			scene.add(container.getBoxMesh());
+			scene.add(container.getEdgeMesh());
+
+			// create particles
+			var numParticles = 700;
+			var particles = [];
+
+			for (var i = 0; i < numParticles; i++) {
+				particles[i] = new Particle(i, 0, 0, 0);
+				scene.add(particles[i].getMesh());
+			}
+
+			camera.position.z = 5;
+
+			// do jQuery stuff so that the camera can be moved about
+			$(document).ready(function(){
+				$(document).keypress(function(e) {
+					switch(e.keyCode) { // this logic is horribble and needs improving
+						case 38: // up arrow
+							camera.position.z -= 0.1;
+							camera.lookAt(container.getMesh().position);
+						break;
+
+						case 40: // down arrow
+							camera.position.z += 0.1
+							camera.lookAt(container.getMesh().position);
+						break;
+
+						case 39: // right arrow
+							camera.position.x += 0.1;
+							camera.lookAt(container.getMesh().position);
+						break;
+
+						case 37: //left arrow
+							camera.position.x -= 0.1;
+							camera.lookAt(container.getMesh().position);
+						break;
+					}
+				});
+			});
+
+			// do rendering
+			var render = function () { 
+				requestAnimationFrame(render); 
+				renderer.render(scene, camera);
+				
+				for (var i = 0; i < numParticles; i++) {
+					particles[i].tick();
+				}
+			}; 
+
+			render();
+
+
+		</script>
+	</body>
+</html>
