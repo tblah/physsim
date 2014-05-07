@@ -1,21 +1,32 @@
 <html>
 	<head>
 		<title>gas1</title>
+		<link type="text/css" rel="stylesheet" href="style.css">
 		<script type="text/javascript" src="js/three.min.js"></script>
 		<script type="text/javascript" src="js/particle.js"></script>
 		<script type="text/javascript" src="js/jquery-2.1.0.min.js"></script>
 
-		<style type="text/css">canvas { width: 100%; height: 100%; }</style>
+		<!--<style type="text/css">canvas { width: 100%; height: 100%; }</style>
+		/-->
 	</head>
 	<body>
+		<h1>Test</h1>
 		<script type="text/javascript" src="js/gasParticle.js"></script>
 		<script type="text/javascript">
+
+			var gameContext = {
+				numParticles: 400,
+				bounds: {
+					min: new THREE.Vector3(-2, -2, -2),
+					max: new THREE.Vector3(2, 2, 2)
+				}
+			};
 
 			function onWindowResize() {	// event handler to deal with fixing things when the window resizes
 				camera.aspect = window.innerWidth / window.innerHeight;
 				camera.updateProjectionMatrix();
 
-				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.setSize( window.innerWidth / 1.25, window.innerHeight / 1.25 );
 
 			}
 
@@ -31,10 +42,11 @@
 				renderer.render(scene, camera);
 				
 				for (var i = 0; i < numParticles; i++) {
-					particles[i].tick();
+					particles[i].tick( gameContext );
 				}
 
 				// for camera movement
+				// todo: multiply by delta time ( time between frames )
 				camera.position.x += ( mouseX - camera.position.x ) * 0.0001;
 				camera.position.y += ( - mouseY - camera.position.y ) * 0.0001;
 
@@ -54,7 +66,8 @@
 			camera.position.z = 5;
 
 			var renderer = new THREE.WebGLRenderer();
-			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.domElement.class = "simulation";
+			renderer.setSize( window.innerWidth / 1.25, window.innerHeight / 1.25 );
 			document.body.appendChild(renderer.domElement);
 
 			// create the container box that particles appear to be inside
@@ -65,7 +78,10 @@
 				edges: 0
 			};
 
-			container.geometry = new THREE.CubeGeometry(4, 4, 4);
+			var boundMin = gameContext.bounds.min;
+			var boundMax = gameContext.bounds.max;
+
+			container.geometry = new THREE.CubeGeometry( Math.abs(boundMin.x) + Math.abs(boundMax.x) , Math.abs(boundMin.y) + Math.abs(boundMax.y), Math.abs(boundMin.z) + Math.abs(boundMax.z));
 			container.material = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.175});
 			container.mesh = new THREE.Mesh(container.geometry, container.material);
 			container.edges = new THREE.EdgesHelper(container.mesh, 0xffffff);
@@ -74,11 +90,11 @@
 			scene.add(container.mesh);
 
 			// create particles
-			var numParticles = 700;
+			var numParticles = gameContext.numParticles;
 			var particles = [];
 
 			for (var i = 0; i < numParticles; i++) {
-				particles[i] = new GasParticle(i, 0, 0, 0);
+				particles[i] = new GasParticle(i, Math.random() * 2 - 1 , Math.random() * 2 - 1, Math.random() * 2 - 1);
 				scene.add(particles[i].mesh);
 			}
 

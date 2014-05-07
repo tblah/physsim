@@ -13,12 +13,12 @@ GasParticle.prototype.takePosotive = function (n) {
 		return -n;
 }
 
-GasParticle.prototype.tick = function () { // overrides Particle.tick()
+GasParticle.prototype.tick = function ( gameContext ) { // overrides Particle.tick()
 	this.mesh.position.x += this.velocity.x;
 	this.mesh.position.y += this.velocity.y;
 	this.mesh.position.z += this.velocity.z;
 		
-	this.checkWallCollisions();
+	this.checkWallCollisions( gameContext.bounds.min, gameContext.bounds.max );
 	this.checkParticleCollisions();
 
 	// change colour according to velocity: blue is fast, red is slow: aka blue is hotter, red is colder
